@@ -105,7 +105,7 @@ export const statementPairs: StatementPair[] = [
       type: 2,
     },
     statementB: {
-      text: 'The most satisfying moments for me are when I have accomplished something I set out to achieve.',
+      text: 'The most satisfying moments for me are when my efforts produce results that earn genuine recognition — when others can see the value of what I have done.',
       type: 3,
     },
   },
@@ -235,7 +235,7 @@ export const statementPairs: StatementPair[] = [
   {
     id: 21,
     statementA: {
-      text: 'I am energized by competition and the pursuit of something meaningful to work toward.',
+      text: 'I need to be working toward something — achieving goals and being valued for what I accomplish gives my life a sense of purpose.',
       type: 3,
     },
     statementB: {
