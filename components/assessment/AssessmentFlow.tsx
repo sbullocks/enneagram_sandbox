@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { statementPairs } from '@/data/statementPairs';
-import { calculateResult, getProgress } from '@/lib/scoring';
-import type { AssessmentResult } from '@/types';
+import { buildSession, calculateResult, getProgress } from '@/lib/scoring';
+import type { AssessmentResult, SessionPair } from '@/types';
 import type { Answers } from '@/lib/scoring';
 import IntroScreen from './IntroScreen';
 import QuestionCard from './QuestionCard';
@@ -16,28 +16,31 @@ export default function AssessmentFlow() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [session, setSession] = useState<SessionPair[]>([]);
 
   const handleBegin = useCallback(() => {
+    // Build a fresh randomized session each time the user begins
+    setSession(buildSession(statementPairs));
     setPhase('questions');
   }, []);
 
   const handleAnswer = useCallback(
     (choice: 'A' | 'B') => {
-      const pair = statementPairs[currentIndex];
+      const pair = session[currentIndex];
       const updatedAnswers = { ...answers, [pair.id]: choice };
       setAnswers(updatedAnswers);
 
-      const isLast = currentIndex === statementPairs.length - 1;
+      const isLast = currentIndex === session.length - 1;
 
       if (isLast) {
-        const assessmentResult = calculateResult(updatedAnswers);
+        const assessmentResult = calculateResult(updatedAnswers, session);
         setResult(assessmentResult);
         setPhase('results');
       } else {
         setCurrentIndex((prev) => prev + 1);
       }
     },
-    [answers, currentIndex]
+    [answers, currentIndex, session]
   );
 
   const handleRetake = useCallback(() => {
@@ -45,21 +48,31 @@ export default function AssessmentFlow() {
     setCurrentIndex(0);
     setAnswers({});
     setResult(null);
+    setSession([]);
   }, []);
+
+  const progress = useMemo(
+    () => getProgress(answers, statementPairs.length),
+    [answers]
+  );
 
   if (phase === 'intro') {
     return <IntroScreen onBegin={handleBegin} />;
   }
 
-  if (phase === 'questions') {
-    const pair = statementPairs[currentIndex];
-    const progress = getProgress(answers);
+  if (phase === 'questions' && session.length > 0) {
+    const pair = session[currentIndex];
+
+    // Apply flip: swap which statement shows as A vs B for this pair
+    const displayPair = pair.flipped
+      ? { ...pair, statementA: pair.statementB, statementB: pair.statementA }
+      : pair;
 
     return (
       <QuestionCard
-        pair={pair}
+        pair={displayPair}
         questionNumber={currentIndex + 1}
-        totalQuestions={statementPairs.length}
+        totalQuestions={session.length}
         progress={progress}
         onAnswer={handleAnswer}
       />

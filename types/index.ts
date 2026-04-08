@@ -29,6 +29,15 @@ export interface StatementPair {
   };
 }
 
+/**
+ * A StatementPair as it will be presented to the user in a session.
+ * `flipped: true` means statementB is shown as option A and statementA as option B.
+ * The scoring engine uses `flipped` to credit the correct type regardless of display order.
+ */
+export interface SessionPair extends StatementPair {
+  flipped: boolean;
+}
+
 export type Scores = Record<EnneagramTypeNumber, number>;
 
 export interface AssessmentResult {
